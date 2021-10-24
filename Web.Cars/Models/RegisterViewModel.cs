@@ -15,4 +15,19 @@ namespace Web.Cars.Models
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
     }
+    public class AccountError /*Error*/
+    {
+        public AccountError() { }
+        public AccountError(string message)
+        {
+            Errors.Invalid.Add(message);
+        }
+        public AccountErrorItem Errors { get; set; } = new AccountErrorItem(); /*exmp of AccountErrorItem */
+    }
+
+    public class AccountErrorItem
+    {
+        public List<string> Invalid { get; set; } = new List<string>(); /*List of Errors*/
+    }
+
 }

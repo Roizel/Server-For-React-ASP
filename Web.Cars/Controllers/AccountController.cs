@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Web.Cars.Abstract;
 using Web.Cars.Data.Identity;
+using Web.Cars.Exceptions;
 using Web.Cars.Models;
 using Web.Cars.Services;
 
@@ -15,57 +17,34 @@ namespace Web.Cars.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly IMapper _mapper;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly IJwtTokenService _jwtTokenService;
-
-        public AccountController(UserManager<AppUser> userManager,
-            IJwtTokenService jwtTokenService,
-            SignInManager<AppUser> signInManager,
-            IMapper mapper)
+        private readonly IUserService userService;
+        public AccountController(IUserService _userService)
         {
-            _mapper = mapper;
-            _userManager = userManager;
-            _jwtTokenService = jwtTokenService;
-            _signInManager = signInManager;
+            userService = _userService;
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterViewModel model)
         {
-            var user = _mapper.Map<AppUser>(model);
-            string fileName = String.Empty;
-            if (model.Photo != null)
+            try /*If Good, aend OK to Frontend*/
             {
-                string randomFilename = Path.GetRandomFileName() +
-                    Path.GetExtension(model.Photo.FileName);
+                string token = await userService.CreateUser(model); /*Create user*/
+                if (token == null)
+                    return BadRequest(); /*Bedrik*/
 
-                string dirPath = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                fileName = Path.Combine(dirPath, randomFilename);
-                using (var file = System.IO.File.Create(fileName))
+                return Ok(new
                 {
-                    model.Photo.CopyTo(file);
-                }
-                user.Photo = randomFilename;
+                    token /*All good*/
+                });
             }
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
+            catch (AccountException aex) /*If Bad, send errors to Frontend*/
             {
-                if (!string.IsNullOrEmpty(fileName))
-                    System.IO.File.Delete(fileName);
-                return BadRequest(result.Errors);
+
+                return BadRequest(aex.AccountError);
             }
-            //result = await _userManager.AddToRoleAsync(user, "user");
-            //if (!result.Succeeded)
-            //{
-            // return BadRequest(result.Errors);
-            //}
-
-            return Ok(new
+            catch(Exception ex) /*For undefined exceptions*/
             {
-                token = _jwtTokenService.CreateToken(user)
-            });
+                return BadRequest(new AccountError("Something went wrong on server" + ex.Message)); /*Send bedrik to frontend*/
+            }
         }
     }
 

@@ -10,9 +10,12 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.IO;
 using System.Text;
+using Web.Cars.Abstract;
 using Web.Cars.Data;
 using Web.Cars.Data.Identity;
 using Web.Cars.Mapper;
@@ -39,16 +42,23 @@ namespace Web.Cars
             services.AddIdentity<AppUser, AppRole>(options =>
             {
                 options.Password.RequireDigit = false;
-                options.Password.RequiredLength = 5;
+                options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
             })
                 .AddEntityFrameworkStores<AppEFContext>()
                 .AddDefaultTokenProviders();
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson(options => /*Send data to fronetend with Camelcase(Email = email, Loh = loh etc.)*/
+                {
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                });
+
             services.AddFluentValidation(x =>
-                x.RegisterValidatorsFromAssemblyContaining<Startup>());
+                x.RegisterValidatorsFromAssemblyContaining<Startup>()); /*For Validation*/
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web.Cars", Version = "v1" });
@@ -56,7 +66,8 @@ namespace Web.Cars
             services.AddCors();
             services.AddAutoMapper(typeof(AppMapProfile)); /*Add AutoMapper*/
 
-            services.AddScoped<IJwtTokenService, JwtTokenService>(); /**/
+            services.AddScoped<IJwtTokenService, JwtTokenService>(); /*Св'язуєм так, щоб коли визивався інтерфейс, створювався клас*/
+            services.AddScoped<IUserService, UserService>(); /*Св'язуєм так, щоб коли визивався інтерфейс, створювався клас*/
             var signinKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<String>("JwtKey")));
 
             services.AddAuthentication(options => /*Validation of our JWT Token. Configurate of our Token*/
@@ -69,7 +80,7 @@ namespace Web.Cars
                 cfg.SaveToken = true;
                 cfg.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    IssuerSigningKey = signinKey, /*Check our Key if key was gived ASP then ok, if no - abort*/
+                    IssuerSigningKey = signinKey, /*Check our Key if key was gived ASP, if no - abort*/
                     ValidateAudience = false,
                     ValidateIssuer = false,
                     ValidateLifetime = true,

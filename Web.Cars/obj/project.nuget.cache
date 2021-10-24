@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "emHDwxxDt0kvb6wXkoS4lfoIrcomvHzdC8B0hKEi/R0p8+TfKc+sjCGOMkR8Yo8RuI9xZS1v6WU1zpfcTtkH2Q==",
+  "dgSpecHash": "MgICXxXTlI56GCvjgynOMknkr4MCj4FngpMTHjoMpashZp60tD2D4vjUm6q8flbRIlk9z78d8iZUMtw8qnrLcQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\sasha\\OneDrive\\Рабочий стол\\Server-For-React-ASP\\Web.Cars\\Web.Cars.csproj",
+  "projectFilePath": "C:\\Users\\sasha\\OneDrive\\Рабочий стол\\server\\Server-For-React-ASP\\Web.Cars\\Web.Cars.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\sasha\\.nuget\\packages\\automapper\\10.1.1\\automapper.10.1.1.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\8.1.1\\automapper.extensions.microsoft.dependencyinjection.8.1.1.nupkg.sha512",
@@ -14,6 +14,8 @@
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\5.0.9\\microsoft.aspnetcore.cryptography.internal.5.0.9.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\5.0.9\\microsoft.aspnetcore.cryptography.keyderivation.5.0.9.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\5.0.9\\microsoft.aspnetcore.identity.entityframeworkcore.5.0.9.nupkg.sha512",
+    "C:\\Users\\sasha\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\5.0.11\\microsoft.aspnetcore.jsonpatch.5.0.11.nupkg.sha512",
+    "C:\\Users\\sasha\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\5.0.11\\microsoft.aspnetcore.mvc.newtonsoftjson.5.0.11.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.data.sqlite.core\\5.0.9\\microsoft.data.sqlite.core.5.0.9.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.dotnet.platformabstractions\\3.1.6\\microsoft.dotnet.platformabstractions.3.1.6.nupkg.sha512",
@@ -44,6 +46,8 @@
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.identitymodel.protocols.openidconnect\\6.7.1\\microsoft.identitymodel.protocols.openidconnect.6.7.1.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.identitymodel.tokens\\6.7.1\\microsoft.identitymodel.tokens.6.7.1.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\sasha\\.nuget\\packages\\newtonsoft.json\\12.0.2\\newtonsoft.json.12.0.2.nupkg.sha512",
+    "C:\\Users\\sasha\\.nuget\\packages\\newtonsoft.json.bson\\1.0.2\\newtonsoft.json.bson.1.0.2.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.0.6\\sqlitepclraw.bundle_e_sqlite3.2.0.6.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\sqlitepclraw.core\\2.0.6\\sqlitepclraw.core.2.0.6.nupkg.sha512",
     "C:\\Users\\sasha\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.0.6\\sqlitepclraw.lib.e_sqlite3.2.0.6.nupkg.sha512",
