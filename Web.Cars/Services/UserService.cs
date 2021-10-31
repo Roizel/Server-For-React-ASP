@@ -57,5 +57,22 @@ namespace Web.Cars.Services
 
             return _jwtTokenService.CreateToken(user);
         }
+
+        public async Task<string> DeleteUser(string Email)
+        {
+            var user = await _userManager.FindByEmailAsync(Email);
+            if (user.Email != null)
+            {
+                await _userManager.DeleteAsync(user);
+                return "User Delete";
+            }
+            else
+            {
+                string error = "This user does not exist";
+                AccountError accountError = new AccountError();
+                accountError.Errors.Invalid.Add(error);
+                throw new AccountException(accountError);
+            }
+        }
     }
 }

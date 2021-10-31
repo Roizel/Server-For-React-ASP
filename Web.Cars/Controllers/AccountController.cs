@@ -18,14 +18,18 @@ namespace Web.Cars.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IUserService userService;
-        public AccountController(IUserService _userService)
+        private readonly UserManager<AppUser> _userManager;
+        private readonly IJwtTokenService _tokenService;
+        public AccountController(IUserService _userService, UserManager<AppUser> userManager, IJwtTokenService tokenService)
         {
             userService = _userService;
+            _userManager = userManager;
+            _tokenService = tokenService;
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterViewModel model)
         {
-            try /*If Good, aend OK to Frontend*/
+            try /*If Good, send OK to Frontend*/
             {
                 string token = await userService.CreateUser(model); /*Create user*/
                 if (token == null)
@@ -44,6 +48,36 @@ namespace Web.Cars.Controllers
             catch(Exception ex) /*For undefined exceptions*/
             {
                 return BadRequest(new AccountError("Something went wrong on server" + ex.Message)); /*Send bedrik to frontend*/
+            }
+        }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email); /*І так ясно*/
+                if (await _userManager.CheckPasswordAsync(user, model.Password)) /*І так ясно*/
+                {
+                    string token = _tokenService.CreateToken(user); /*Create token and send it to client*/
+                    return Ok(
+                        new { token }
+                    );
+                }
+                else
+                {
+
+                    var exc = new AccountError();
+                    exc.Errors.Invalid.Add("Пароль не вірний!");
+                    throw new AccountException(exc);
+                }
+            }
+            catch (AccountException aex)
+            {
+                return BadRequest(aex.AccountError);
+            }
+            catch
+            {
+                return BadRequest(new AccountError("Щось пішло не так!"));
             }
         }
     }

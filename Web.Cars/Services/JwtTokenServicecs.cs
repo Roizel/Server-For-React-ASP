@@ -13,6 +13,7 @@ namespace Web.Cars.Services
     public interface IJwtTokenService /*Polimorfizm:))*/
     {
         string CreateToken(AppUser user);
+        string DeleteToken();
     }
 
     public class JwtTokenService : IJwtTokenService
@@ -46,10 +47,15 @@ namespace Web.Cars.Services
 
             var jwt = new JwtSecurityToken( /*Create JWT Token and configurate it*/
                 signingCredentials: signinCredentials, /*Give JWT Token signinCredentials*/
-                expires: DateTime.Now.AddDays(1000), /*Time of living of this JWT*/
+                expires: DateTime.Now.AddDays(1), /*Time of living of this JWT*/
                 claims: claims /*Give JWT Token claims*/
             );
             return new JwtSecurityTokenHandler().WriteToken(jwt); /*Return our JWT Token in string*/
+        }
+
+        public string DeleteToken()
+        {
+            throw new NotImplementedException();
         }
     }
 }

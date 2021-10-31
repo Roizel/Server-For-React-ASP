@@ -9,5 +9,6 @@ namespace Web.Cars.Abstract
     public interface IUserService
     {  /*Create Abstract Method*/
         public Task<string> CreateUser(RegisterViewModel model);
+        public Task<string> DeleteUser(string Email);
     }
 }
