@@ -1,11 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Web.Cars.Abstract;
 using Web.Cars.Data;
+using Web.Cars.Data.Identity;
 using Web.Cars.Exceptions;
 using Web.Cars.Models;
 
@@ -16,38 +22,43 @@ namespace Web.Cars.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppEFContext _context;
-        private readonly IUserService _userService;
-        public UsersController(AppEFContext context, IUserService userService)
+        private readonly IMapper _mapper;
+        private readonly UserManager<AppUser> _userManager;
+        public UsersController(AppEFContext context, IMapper mapper, UserManager<AppUser> userManager)
         {
-            _userService = userService;
+            _mapper = mapper;
             _context = context;
+            _userManager = userManager;
         }
         [Route("all")]
         [HttpGet]
         public IActionResult GetUsers()
         {
-            var list = _context.Users.Select(x => new 
-            {
-               fio = x.FIO,
-               Email = x.Email,
-               Image = "/images/" + x.Photo
-            }).ToList();
+            Thread.Sleep(2000);
+            var list = _context.Users
+                .Select(x => _mapper.Map<UserItemViewModel>(x))
+                .ToList();
             return Ok(list);
         }
-        [Route("delete")] /*[HttpPost("register")] - хз чого, но так не робить, треба писати HttpPost i Route*/
-        [HttpPost]
-        public async Task<IActionResult> Delete([FromBody]string email) /*FromBody - без цього в буде приходити null(хз чого)*/
+        [Route("delete/{id}")] /*[HttpPost("register")] - хз чого, но так не робить, треба писати HttpPost i Route*/
+        [HttpDelete]
+        public async Task<IActionResult> DeleteUser(int id) /*FromBody - без цього в буде приходити null(хз чого)*/
         {
-            try /*If Good, send OK to Frontend*/
+            Thread.Sleep(2000);
+            try
             {
-                string token = await _userService.DeleteUser(email); /*Call DeleteUser from /Services/UserService.cs*/
-                if (token == null)
-                    return BadRequest(); /*Bedrik*/
-
-                return Ok(new
+                var user = _context.Users.SingleOrDefault(x => x.Id == id);
+                if (user == null)
+                    return NotFound(); /*Bedrik*/
+                if (user.Photo != null)
                 {
-                    token /*All good*/
-                });
+                    var directory = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                    var FilePath = Path.Combine(directory, user.Photo);
+                    System.IO.File.Delete(FilePath);
+                }
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                return Ok();
             }
             catch (AccountException aex) /*If Bad, send errors to Frontend*/
             {
@@ -56,6 +67,66 @@ namespace Web.Cars.Controllers
             catch (Exception ex) /*For undefined exceptions*/
             {
                 return BadRequest(new AccountError("Something went wrong on server " + ex.Message)); /*Send bedrik to frontend*/
+            }
+        }
+        [Route("edit/{id}")]
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var user = _context.Users
+                .SingleOrDefault(x => x.Id == id);
+            return Ok(_mapper.Map<UserEditViewModel>(user));
+        }
+        [HttpPost("save/{id}")]
+        public async Task<IActionResult> Save([FromForm] UserSaveViewModel user, int Id)
+        {
+            try
+            {
+                AppUser editedUser = await _userManager.FindByIdAsync(Id.ToString());
+                editedUser.Email = user.Email;
+                editedUser.FIO = user.FIO;
+                //AppUser editeduser = new AppUser()
+                //{
+                //    Id = Id,
+                //    Email = user.Email,
+                //    FIO = user.FIO,
+                //    UserName = user.Email,
+                //};
+                string fileName = string.Empty;
+                if (user.Photo != null) /*Images*/
+                {
+                    string randomFilename = Path.GetRandomFileName() +
+                        Path.GetExtension(user.Photo.FileName);
+
+                    string dirPath = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                    fileName = Path.Combine(dirPath, randomFilename);
+                    using (var file = System.IO.File.Create(fileName))
+                    {
+                        user.Photo.CopyTo(file);
+                    }
+                    editedUser.Photo = randomFilename;
+                }
+                var result = await _userManager.UpdateAsync(editedUser);
+                await _context.SaveChangesAsync();
+                if (result.Succeeded)
+                {
+                    return Ok("all ok");
+                }
+                else
+                {
+                    return BadRequest(new AccountError("Something went wrong on server"));
+                }
+
+                //}
+            }
+            catch (AccountException aex) /*If Bad, send errors to Frontend*/
+            {
+
+                return BadRequest(aex.AccountError);
+            }
+            catch (Exception ex) /*For undefined exceptions*/
+            {
+                return BadRequest(new AccountError("Something went wrong on server: " + ex.Message)); /*Send bedrik to frontend*/
             }
         }
     }
