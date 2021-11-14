@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Web.Cars.Abstract;
+using Web.Cars.Data;
 using Web.Cars.Data.Identity;
 using Web.Cars.Exceptions;
 using Web.Cars.Models;
@@ -15,14 +17,16 @@ namespace Web.Cars.Services
         private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly AppEFContext _context;
         public UserService(UserManager<AppUser> userManager,
              IJwtTokenService jwtTokenService,
              SignInManager<AppUser> signInManager,
-             IMapper mapper)
+             IMapper mapper, AppEFContext context)
         {
             _mapper = mapper;
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
+            _context = context;
         }
         public async Task<string> CreateUser(RegisterViewModel model)
         {
@@ -58,21 +62,37 @@ namespace Web.Cars.Services
             return _jwtTokenService.CreateToken(user);
         }
 
-        //public async Task<string> DeleteUser(string Email)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(Email);
-        //    if (user.Email != null)
-        //    {
-        //        await _userManager.DeleteAsync(user);
-        //        return "User Delete";
-        //    }
-        //    else
-        //    {
-        //        string error = "This user does not exist";
-        //        AccountError accountError = new AccountError();
-        //        accountError.Errors.Invalid.Add(error);
-        //        throw new AccountException(accountError);
-        //    }
-        //}
+        public void UpdateUser(UserSaveViewModel model)
+        {
+            try
+            {
+                var user = _context.Users
+                    .SingleOrDefault(x => x.Id == model.Id);
+                if (user != null)
+                {
+                    user.Email = model.Email;
+                    user.FIO = model.FIO;
+                    string fileName = String.Empty;
+                    if (model.Photo != null)
+                    {
+                        string randomFilename = user.Photo;
+
+                        string dirPath = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                        fileName = Path.Combine(dirPath, randomFilename);
+                        using (var file = File.Create(fileName))
+                        {
+                            model.Photo.CopyTo(file);
+                        }
+                    }
+                    _context.SaveChanges();
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

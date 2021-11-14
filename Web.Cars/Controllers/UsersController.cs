@@ -22,19 +22,19 @@ namespace Web.Cars.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppEFContext _context;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        private readonly UserManager<AppUser> _userManager;
-        public UsersController(AppEFContext context, IMapper mapper, UserManager<AppUser> userManager)
+        public UsersController(AppEFContext context, IMapper mapper, IUserService userService)
         {
             _mapper = mapper;
             _context = context;
-            _userManager = userManager;
+            _userService = userService;
         }
         [Route("all")]
         [HttpGet]
         public IActionResult GetUsers()
         {
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
             var list = _context.Users
                 .Select(x => _mapper.Map<UserItemViewModel>(x))
                 .ToList();
@@ -44,7 +44,7 @@ namespace Web.Cars.Controllers
         [HttpDelete]
         public async Task<IActionResult> DeleteUser(int id) /*FromBody - без цього в буде приходити null(хз чого)*/
         {
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
             try
             {
                 var user = _context.Users.SingleOrDefault(x => x.Id == id);
@@ -73,60 +73,26 @@ namespace Web.Cars.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
+            Thread.Sleep(1000);
             var user = _context.Users
                 .SingleOrDefault(x => x.Id == id);
             return Ok(_mapper.Map<UserEditViewModel>(user));
         }
-        [HttpPost("save/{id}")]
-        public async Task<IActionResult> Save([FromForm] UserSaveViewModel user, int Id)
+        [HttpPut("save")]
+        public async Task<IActionResult> Save([FromForm] UserSaveViewModel model)
         {
             try
             {
-                AppUser editedUser = await _userManager.FindByIdAsync(Id.ToString());
-                editedUser.Email = user.Email;
-                editedUser.FIO = user.FIO;
-                //AppUser editeduser = new AppUser()
-                //{
-                //    Id = Id,
-                //    Email = user.Email,
-                //    FIO = user.FIO,
-                //    UserName = user.Email,
-                //};
-                string fileName = string.Empty;
-                if (user.Photo != null) /*Images*/
-                {
-                    string randomFilename = Path.GetRandomFileName() +
-                        Path.GetExtension(user.Photo.FileName);
-
-                    string dirPath = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                    fileName = Path.Combine(dirPath, randomFilename);
-                    using (var file = System.IO.File.Create(fileName))
-                    {
-                        user.Photo.CopyTo(file);
-                    }
-                    editedUser.Photo = randomFilename;
-                }
-                var result = await _userManager.UpdateAsync(editedUser);
-                await _context.SaveChangesAsync();
-                if (result.Succeeded)
-                {
-                    return Ok("all ok");
-                }
-                else
-                {
-                    return BadRequest(new AccountError("Something went wrong on server"));
-                }
-
-                //}
+                _userService.UpdateUser(model);
+                return Ok();
             }
-            catch (AccountException aex) /*If Bad, send errors to Frontend*/
+            catch (AccountException aex)
             {
-
                 return BadRequest(aex.AccountError);
             }
-            catch (Exception ex) /*For undefined exceptions*/
+            catch (Exception ex)
             {
-                return BadRequest(new AccountError("Something went wrong on server: " + ex.Message)); /*Send bedrik to frontend*/
+                return BadRequest(new AccountError("Щось пішло не так! " + ex.Message));
             }
         }
     }
